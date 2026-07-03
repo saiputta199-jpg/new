@@ -78,6 +78,7 @@ map
 				<file:write doc:name="xlxs" doc:id="85dbe2b8-61f2-4771-9bec-eb7c9c5e98f7" path="D:\scatter-gather\xlsx files.xlsx"/>
 			</route>
 		</scatter-gather>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="7ce20e07-0e48-4e2e-81e7-0c1f171a28c0" />
 		<logger level="INFO" doc:name="after scattrer-gather" doc:id="c12c84f3-6c21-410e-a54e-a71d908f119f" message="after scatter gather #[payload]"/>
 	</flow>
 </mule>
