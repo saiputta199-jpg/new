@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ftp="http://www.mulesoft.org/schema/mule/ftp" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ftp http://www.mulesoft.org/schema/mule/ftp/current/mule-ftp.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="06b07396-18d3-4f66-bba6-1c61c5de37af" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="scatter_gatherFlow" doc:id="fe35cb31-f21a-488a-8f08-448a1b5aa7dc" >
+		<http:listener doc:name="Listener" doc:id="7ea674b0-c352-405f-8cea-712494d86ebf" config-ref="HTTP_Listener_config" path="/scatter-gather"/>
+		<logger level="INFO" doc:name="actual payload" doc:id="c7aacfae-09b0-4177-aa92-e7272eae6b37" message="#[payload]"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="f6c26f03-f626-426d-9819-d573b2c5fccc" >
+			<route >
+				<ee:transform doc:name="xml" doc:id="527b5055-c167-43ef-9e0a-36b5a456a83c" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output xml
+---
+employees:
+employee:payload filter ($."Age in Yrs.">=20 and $."Age in Yrs."<=40)
+map
+{
+ "employee ID" :$."Emp ID",  
+    "full name":$."First Name" ++   " " ++  $."Last Name",
+"experience":$."Age in Company (Years)" ++ " " ++"years",
+"hike amount":$.Salary * 20 / 100,
+"after hike total salary":$.Salary+($.Salary * 20 / 100)
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="xml" doc:id="1d62c0dd-2893-4f05-b8fe-08a1f9a1c7d2" message="json data: #[payload]"/>
+				<file:write doc:name="xml" doc:id="ddee5e82-ade4-4f76-8ef3-23c4fd9cf661" path="D:\scatter-gather\xml files.XML"/>
+			</route>
+			<route >
+				<ee:transform doc:name="csv" doc:id="c97ef39c-43a9-4b28-a059-e0ba75b9fc48" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output csv
+---
+payload filter ($."Age in Yrs.">=41 and $."Age in Yrs."<=50)
+map
+{
+ "employee ID" :$."Emp ID",  
+    "full name":$."First Name" ++   " " ++  $."Last Name",
+"experience":$."Age in Company (Years)" ++ " " ++"years",
+"hike amount":$.Salary * 20 / 100,
+"after hike total salary":$.Salary+($.Salary * 20 / 100)
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="csv" doc:id="54771c07-f034-4a3c-8686-685eb19fe6de" message="csv data: #[payload]"/>
+				<file:write doc:name="csv" doc:id="b823d4bb-27ea-48e8-97df-3b6cecae1ab7" path="D:\scatter-gather\csv files.csv"/>
+			</route>
+			<route >
+				<ee:transform doc:name="xlsx" doc:id="236a96c1-1146-4c0a-8784-c8ec8aec5cf1" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output
+application/xlsx
+---
+{"employee data":
+payload filter ($."Age in Yrs.">=51 and $."Age in Yrs."<=80)
+map
+{
+ "employee ID" :$."Emp ID",  
+    "full name":$."First Name" ++   " " ++  $."Last Name",
+"experience":$."Age in Company (Years)" ++ " " ++"years",
+"hike amount":$.Salary * 20 / 100,
+"after hike total salary":$.Salary+($.Salary * 20 / 100)
+}}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="xlxs" doc:id="e2398467-20f3-45d3-9129-e241145f27c0" message="xlxs data:  #[payload]"/>
+				<file:write doc:name="xlxs" doc:id="85dbe2b8-61f2-4771-9bec-eb7c9c5e98f7" path="D:\scatter-gather\xlsx files.xlsx"/>
+			</route>
+		</scatter-gather>
+		<logger level="INFO" doc:name="after scattrer-gather" doc:id="c12c84f3-6c21-410e-a54e-a71d908f119f" message="after scatter gather #[payload]"/>
+	</flow>
+</mule>
